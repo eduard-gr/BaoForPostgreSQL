@@ -44,9 +44,16 @@ static PlannedStmt* bao_planner(
 
 static void bao_ExecutorStart(QueryDesc *queryDesc, int eflags);
 static void bao_ExecutorEnd(QueryDesc *queryDesc);
-static void bao_ExplainOneQuery(Query* query, int cursorOptions, IntoClause* into,
-                                ExplainState* es, const char* queryString,
-                                ParamListInfo params, QueryEnvironment *queryEnv);
+static void bao_ExplainOneQuery(
+    Query* query,
+    int cursorOptions,
+    IntoClause* into,
+    ExplainState* es,
+    const char* queryString,
+    ParamListInfo params,
+    QueryEnvironment *queryEnv,
+    const instr_time *planduration,
+    const BufferUsage *bufusage);
 
 static planner_hook_type prev_planner_hook = NULL;
 static ExecutorStart_hook_type prev_ExecutorStart = NULL;
@@ -303,9 +310,18 @@ static void bao_ExecutorEnd(QueryDesc *queryDesc) {
   }
 }
 
-static void bao_ExplainOneQuery(Query* query, int cursorOptions, IntoClause* into,
-                                ExplainState* es, const char* queryString,
-                                ParamListInfo params, QueryEnvironment* queryEnv) {
+static void bao_ExplainOneQuery(
+    Query* query,
+    int cursorOptions,
+    IntoClause* into,
+    ExplainState* es,
+    const char* queryString,
+    ParamListInfo params,
+    QueryEnvironment* queryEnv,
+
+    const instr_time *planduration,
+    const BufferUsage *bufusage)
+{
   
   PlannedStmt* plan;
   BaoPlan* bao_plan;
@@ -327,8 +343,14 @@ static void bao_ExplainOneQuery(Query* query, int cursorOptions, IntoClause* int
   //       figure out how to add to the end of it. 
   
   if (prev_ExplainOneQuery) {
-    prev_ExplainOneQuery(query, cursorOptions, into, es,
-                         queryString, params, queryEnv);
+    prev_ExplainOneQuery(
+        query,
+        cursorOptions,
+        into,
+        es,
+        queryString,
+        params,
+        queryEnv);
   }
 
   // There should really be a standard_ExplainOneQuery, but there
@@ -336,15 +358,24 @@ static void bao_ExplainOneQuery(Query* query, int cursorOptions, IntoClause* int
   // here as a consequence.
   
   INSTR_TIME_SET_CURRENT(plan_start);
-  plan = (planner_hook ? planner_hook(query, cursorOptions, params)
+  plan = (planner_hook ? planner_hook(query, queryString, cursorOptions, params)
           : standard_planner(query, queryString, cursorOptions, params));
   INSTR_TIME_SET_CURRENT(plan_duration);
   INSTR_TIME_SUBTRACT(plan_duration, plan_start);
     
   if (!enable_bao) {
     // Bao is disabled, do the deault explain thing.
-    ExplainOnePlan(plan, into, es, queryString,
-                   params, queryEnv, &plan_duration);
+    ExplainOnePlan(
+        plan,
+        into,
+        es,
+        queryString,
+        params,
+        queryEnv,
+        &plan_duration,
+        planduration,
+        bufusage);
+
     return;
   }
 
@@ -421,6 +452,14 @@ static void bao_ExplainOneQuery(Query* query, int cursorOptions, IntoClause* int
   ExplainCloseGroup("BaoProps", NULL, true, es);
   
   // Do the deault explain thing.
-  ExplainOnePlan(plan, into, es, queryString,
-                 params, queryEnv, &plan_duration);
+    ExplainOnePlan(
+        plan,
+        into,
+        es,
+        queryString,
+        params,
+        queryEnv,
+        &plan_duration,
+        planduration,
+        bufusage);
 }
