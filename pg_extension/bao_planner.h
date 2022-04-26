@@ -209,15 +209,24 @@ static void set_arm_options(int arm) {
 
 
 // Get a query plan for a particular arm.
-static PlannedStmt* plan_arm(int arm, Query* parse,
-                             int cursorOptions, ParamListInfo boundParams) {
+static PlannedStmt* plan_arm(
+        int arm,
+        Query* parse,
+        const char *query_string,
+        int cursorOptions,
+        ParamListInfo boundParams) {
 
   PlannedStmt* plan = NULL;
   Query* query_copy = copyObject(parse); // create a copy of the query plan
 
   if (arm == -1) {
     // Use whatever the user has set as the current configuration.
-    plan = standard_planner(query_copy, cursorOptions, boundParams);
+    plan = standard_planner(
+            query_copy,
+            query_string,
+            cursorOptions,
+            boundParams);
+
     return plan;
   }
   
@@ -225,7 +234,11 @@ static PlannedStmt* plan_arm(int arm, Query* parse,
   // and invoke the PG planner.
   save_arm_options({
       set_arm_options(arm);
-      plan = standard_planner(query_copy, cursorOptions, boundParams);
+      plan = standard_planner(
+              query_copy,
+              query_string,
+              cursorOptions,
+              boundParams);
     });
 
   return plan;

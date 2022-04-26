@@ -36,8 +36,12 @@ void _PG_fini(void);
 //    for the query back to the Bao server.
 // 4) The bao_ExplainOneQuery hook adds the Bao suggested hint and the reward
 //    prediction to the EXPLAIN output of a query.
-static PlannedStmt* bao_planner(Query *parse,
-                                int cursorOptions, ParamListInfo boundParams);
+static PlannedStmt* bao_planner(
+        Query *parse,
+        const char *query_string,
+        int cursorOptions,
+        ParamListInfo boundParams);
+
 static void bao_ExecutorStart(QueryDesc *queryDesc, int eflags);
 static void bao_ExecutorEnd(QueryDesc *queryDesc);
 static void bao_ExplainOneQuery(Query* query, int cursorOptions, IntoClause* into,
@@ -145,10 +149,12 @@ void _PG_fini(void) {
   elog(LOG, "finished extension");
 }
 
-static PlannedStmt* bao_planner(Query *parse,
-                                const char *query_string,
-                                int cursorOptions,
-                                ParamListInfo boundParams) {
+static PlannedStmt* bao_planner(
+        Query *parse,
+        const char *query_string,
+        int cursorOptions,
+        ParamListInfo boundParams)
+{
   // Bao planner. This is where we select a query plan.
 
   // The plan returned by the Bao planner, containing the PG plan,
@@ -164,8 +170,11 @@ static PlannedStmt* bao_planner(Query *parse,
 
   if (prev_planner_hook) {
     elog(WARNING, "Skipping Bao hook, another planner hook is installed.");
-    return prev_planner_hook(parse, cursorOptions,
-                             boundParams);
+    return prev_planner_hook(
+        parse,
+        query_string,
+        cursorOptions,
+        boundParams);
   }
 
   // Skip optimizing this query if it is not a SELECT statement (checked by
@@ -173,8 +182,11 @@ static PlannedStmt* bao_planner(Query *parse,
   // enable_bao_selection here, because if enable_bao is on, we still need
   // to attach a query plan to the query to record the reward later.
   if (!should_bao_optimize(parse) || !enable_bao) {
-    return standard_planner(parse, query_string, cursorOptions,
-                            boundParams);
+    return standard_planner(
+            parse,
+            query_string,
+            cursorOptions,
+            boundParams);
   }
 
 
@@ -185,7 +197,11 @@ static PlannedStmt* bao_planner(Query *parse,
 
   if (plan == NULL) {
     // something went wrong, default to the PG plan.
-    return standard_planner(parse, query_string, cursorOptions, boundParams);
+    return standard_planner(
+            parse,
+            query_string,
+            cursorOptions,
+            boundParams);
   }
 
   // We need some way to associate this query with the BaoQueryInfo data.
@@ -224,7 +240,7 @@ static void bao_ExecutorStart(QueryDesc *queryDesc, int eflags) {
       MemoryContext oldcxt;
       
       oldcxt = MemoryContextSwitchTo(queryDesc->estate->es_query_cxt);
-      queryDesc->totaltime = InstrAlloc(1, INSTRUMENT_TIMER);
+      queryDesc->totaltime = InstrAlloc(1, INSTRUMENT_TIMER, false);
       MemoryContextSwitchTo(oldcxt);
     }
   }
