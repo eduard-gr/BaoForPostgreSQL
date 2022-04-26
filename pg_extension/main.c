@@ -146,6 +146,7 @@ void _PG_fini(void) {
 }
 
 static PlannedStmt* bao_planner(Query *parse,
+                                const char *query_string,
                                 int cursorOptions,
                                 ParamListInfo boundParams) {
   // Bao planner. This is where we select a query plan.
@@ -172,7 +173,7 @@ static PlannedStmt* bao_planner(Query *parse,
   // enable_bao_selection here, because if enable_bao is on, we still need
   // to attach a query plan to the query to record the reward later.
   if (!should_bao_optimize(parse) || !enable_bao) {
-    return standard_planner(parse, cursorOptions,
+    return standard_planner(parse, query_string, cursorOptions,
                             boundParams);
   }
 
@@ -184,7 +185,7 @@ static PlannedStmt* bao_planner(Query *parse,
 
   if (plan == NULL) {
     // something went wrong, default to the PG plan.
-    return standard_planner(parse, cursorOptions, boundParams);
+    return standard_planner(parse, query_string, cursorOptions, boundParams);
   }
 
   // We need some way to associate this query with the BaoQueryInfo data.
@@ -316,7 +317,7 @@ static void bao_ExplainOneQuery(Query* query, int cursorOptions, IntoClause* int
   
   INSTR_TIME_SET_CURRENT(plan_start);
   plan = (planner_hook ? planner_hook(query, cursorOptions, params)
-          : standard_planner(query, cursorOptions, params));
+          : standard_planner(query, queryString, cursorOptions, params));
   INSTR_TIME_SET_CURRENT(plan_duration);
   INSTR_TIME_SUBTRACT(plan_duration, plan_start);
     
