@@ -51,9 +51,7 @@ static void bao_ExplainOneQuery(
     ExplainState* es,
     const char* queryString,
     ParamListInfo params,
-    QueryEnvironment *queryEnv,
-    const instr_time *planduration,
-    const BufferUsage *bufusage);
+    QueryEnvironment *queryEnv);
 
 static planner_hook_type prev_planner_hook = NULL;
 static ExecutorStart_hook_type prev_ExecutorStart = NULL;
@@ -317,10 +315,7 @@ static void bao_ExplainOneQuery(
     ExplainState* es,
     const char* queryString,
     ParamListInfo params,
-    QueryEnvironment* queryEnv,
-
-    const instr_time *planduration,
-    const BufferUsage *bufusage)
+    QueryEnvironment* queryEnv)
 {
   
   PlannedStmt* plan;
@@ -373,8 +368,7 @@ static void bao_ExplainOneQuery(
         params,
         queryEnv,
         &plan_duration,
-        planduration,
-        bufusage);
+        NULL);
 
     return;
   }
@@ -460,6 +454,5 @@ static void bao_ExplainOneQuery(
         params,
         queryEnv,
         &plan_duration,
-        planduration,
-        bufusage);
+        NULL);
 }
