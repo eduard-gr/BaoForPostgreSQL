@@ -313,7 +313,7 @@ static void bao_ExplainOneQuery(
     int cursorOptions,
     IntoClause* into,
     ExplainState* es,
-    const char* queryString,
+    const char* query_string,
     ParamListInfo params,
     QueryEnvironment* queryEnv)
 {
@@ -343,7 +343,7 @@ static void bao_ExplainOneQuery(
         cursorOptions,
         into,
         es,
-        queryString,
+        query_string,
         params,
         queryEnv);
   }
@@ -353,8 +353,8 @@ static void bao_ExplainOneQuery(
   // here as a consequence.
   
   INSTR_TIME_SET_CURRENT(plan_start);
-  plan = (planner_hook ? planner_hook(query, queryString, cursorOptions, params)
-          : standard_planner(query, queryString, cursorOptions, params));
+  plan = (planner_hook ? planner_hook(query, query_string, cursorOptions, params)
+          : standard_planner(query, query_string, cursorOptions, params));
   INSTR_TIME_SET_CURRENT(plan_duration);
   INSTR_TIME_SUBTRACT(plan_duration, plan_start);
     
@@ -364,7 +364,7 @@ static void bao_ExplainOneQuery(
         plan,
         into,
         es,
-        queryString,
+        query_string,
         params,
         queryEnv,
         &plan_duration,
@@ -450,7 +450,7 @@ static void bao_ExplainOneQuery(
         plan,
         into,
         es,
-        queryString,
+        query_string,
         params,
         queryEnv,
         &plan_duration,
