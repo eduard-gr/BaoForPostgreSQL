@@ -193,7 +193,11 @@ static PlannedStmt* bao_planner(
   t_start = clock();
 
   // Call Bao query planning routine (in `bao_planner.h`).
-  plan = plan_query(parse, cursorOptions, boundParams);
+  plan = plan_query(
+      parse,
+      query_string,
+      cursorOptions,
+      boundParams);
 
   if (plan == NULL) {
     // something went wrong, default to the PG plan.
@@ -395,7 +399,11 @@ static void bao_ExplainOneQuery(Query* query, int cursorOptions, IntoClause* int
   // since EXPLAIN should still be fast.
   old_selection_val = enable_bao_selection;
   enable_bao_selection = true;
-  bao_plan = plan_query(query, cursorOptions, params);
+  bao_plan = plan_query(
+      query,
+      query_string,
+      cursorOptions,
+      params);
   enable_bao_selection = old_selection_val;
   
   if (!bao_plan) {
