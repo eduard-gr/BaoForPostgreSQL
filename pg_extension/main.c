@@ -237,6 +237,7 @@ static PlannedStmt* bao_planner(
 static void bao_ExecutorStart(QueryDesc *queryDesc, int eflags) {
   // Code from pg_stat_statements. If needed, setup query timing
   // to use as Bao's reward signal.
+  elog(LOG, "Bao planning executor start");
 
   if (prev_ExecutorStart)
     prev_ExecutorStart(queryDesc, eflags);
@@ -259,7 +260,8 @@ static void bao_ExecutorStart(QueryDesc *queryDesc, int eflags) {
 static void bao_ExecutorEnd(QueryDesc *queryDesc) {
   // A query has finished. We need to check if it was a query Bao could optimize,
   // and if so, report the reward to the Bao server.
-  
+  elog(LOG, "Bao planning executor end");
+
   BaoQueryInfo* bao_query_info;
   char* r_json;
   int conn_fd;
@@ -329,6 +331,7 @@ static void bao_ExplainOneQuery(
   bool old_selection_val;
   bool connected = false;
 
+  elog(LOG, "Bao explain one query");
   
   // If there are no other EXPLAIN hooks, add to the EXPLAIN output Bao's estimate
   // of this query plan's execution time, as well as what hints would be used
