@@ -160,6 +160,7 @@ static PlannedStmt* bao_planner(
         int cursorOptions,
         ParamListInfo boundParams)
 {
+  
   // Bao planner. This is where we select a query plan.
 
   // The plan returned by the Bao planner, containing the PG plan,
@@ -172,6 +173,8 @@ static PlannedStmt* bao_planner(
 
   // Final PG plan to execute.
   PlannedStmt* to_return;
+
+  elog(LOG, "Bao planning start");
 
   if (prev_planner_hook) {
     elog(WARNING, "Skipping Bao hook, another planner hook is installed.");
@@ -205,6 +208,7 @@ static PlannedStmt* bao_planner(
       boundParams);
 
   if (plan == NULL) {
+    elog(WARNING, "Bao something went wrong, call default PG plan");
     // something went wrong, default to the PG plan.
     return standard_planner(
             parse,
