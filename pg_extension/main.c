@@ -274,6 +274,7 @@ static void bao_ExecutorEnd(QueryDesc *queryDesc) {
   int conn_fd;
 
   if (enable_bao_rewards && should_report_reward(queryDesc)) {
+    elog(LOG, "Bao write rewards");
     // We are tracking rewards for queries, and this query was
     // eligible for optimization by Bao.
     conn_fd = connect_to_bao(bao_host, bao_port);
@@ -308,6 +309,8 @@ static void bao_ExecutorEnd(QueryDesc *queryDesc) {
     shutdown(conn_fd, SHUT_RDWR);
 
     free_bao_query_info(bao_query_info);
+  }else{
+    elog(LOG, "Bao enable_bao_rewards == false of report_reward == false");
   }
   
   if (prev_ExecutorEnd) {

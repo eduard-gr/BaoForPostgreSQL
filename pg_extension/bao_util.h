@@ -62,23 +62,9 @@ static bool should_report_reward(QueryDesc* queryDesc) {
   // (1) that the query ID is not zero (query ID is left as 0 for INSERT, UPDATE, etc.)
   // (2) that the query actually executed (e.g., was not an EXPLAIN).
   // (3) the the instrument_options is zero (e.g., was not an EXPLAIN ANALYZE)
-  if(queryDesc->plannedstmt->queryId != 0){
-    elog(WARNING, "Bao queryId != 0 (%d)",
-      queryDesc->plannedstmt->queryId);    
-    return false;
-  }
-
-  if(!queryDesc->already_executed){
-    elog(WARNING, "Bao already_executed == false");
-    return false;
-  }
-
-  if(queryDesc->instrument_options != 0){
-    elog(WARNING, "Bao instrument_options != 0");
-    return false;
-  }
-
-  return true;
+  return (queryDesc->plannedstmt->queryId != 0
+          && queryDesc->already_executed
+          && queryDesc->instrument_options == 0);
 }
 
 // Determine if we should optimize this query or not.
