@@ -35,13 +35,13 @@ def run_query(sql, file_name, bao_select=False, bao_reward=False):
             metadata = {
                 "dbname": DB_NAME,
                 "query_name": file_name,
-                "bao_enabled": {bao_select or bao_reward},
+                "bao_enabled": (bao_select or bao_reward),
                 "bao_select": bao_select,
                 "bao_reward": bao_reward,
             }
 
             cur.execute("/**{}**/{}".format(
-                json.dumps(metadata),
+                metadata,
                 sql
             ))
 
