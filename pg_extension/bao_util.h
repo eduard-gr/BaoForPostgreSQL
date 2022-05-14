@@ -64,7 +64,7 @@ static bool should_report_reward(QueryDesc* queryDesc) {
   // (3) the the instrument_options is zero (e.g., was not an EXPLAIN ANALYZE)
   return (queryDesc->plannedstmt->queryId != 0
           && queryDesc->already_executed
-          && queryDesc->instrument_options == 0);
+          /*&& queryDesc->instrument_options == 0*/);
 }
 
 // Determine if we should optimize this query or not.
