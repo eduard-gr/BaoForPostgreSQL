@@ -4,14 +4,30 @@ import os
 import sys
 import random
 from time import time, sleep
+import configparser
 
+def read_config():
+    config = configparser.ConfigParser()
+    config.read("bao_server/bao.cfg")
+
+    if "bao" not in config:
+        print("bao.cfg does not have a [bao] section.")
+        exit(-1)
+
+    config = config["bao"]
+    return config
+
+config = read_config()
+
+bao_port = int(config["Port"])
+db_name = config["Database"]
+password = config["Password"]
 
 USE_BAO = True
-DB_NAME = "tpch"
-PASSWORD = "postgres"
+
 PG_CONNECTION_STR = "dbname={} user=postgres password={} host=localhost".format(
-    DB_NAME,
-    PASSWORD)
+    db_name,
+    password)
 
 # https://stackoverflow.com/questions/312443/
 def chunks(lst, n):
@@ -26,6 +42,7 @@ def run_query(sql, file_name, bao_select=False, bao_reward=False):
         try:
             conn = psycopg2.connect(PG_CONNECTION_STR)
             cur = conn.cursor()
+            cur.execute(f"SET bao_port TO {bao_port}")
             cur.execute(f"SET enable_bao TO {bao_select or bao_reward}")
             cur.execute(f"SET enable_bao_selection TO {bao_select}")
             cur.execute(f"SET enable_bao_rewards TO {bao_reward}")
@@ -33,7 +50,7 @@ def run_query(sql, file_name, bao_select=False, bao_reward=False):
             cur.execute("SET statement_timeout TO 300000")
 
             metadata = {
-                "dbname": DB_NAME,
+                "dbname": db_name,
                 "query_name": file_name,
                 "bao_enabled": (bao_select or bao_reward),
                 "bao_select": bao_select,
