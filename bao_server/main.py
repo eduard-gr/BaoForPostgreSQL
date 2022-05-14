@@ -104,6 +104,8 @@ class BaoJSONHandler(JSONTCPHandler):
             message_type = self.__messages[0]["type"]
             self.__messages = self.__messages[1:]
 
+            print("Command received:", message_type)
+
             if message_type == "query":
                 result = self.server.bao_model.select_plan(self.__messages)
                 self.request.sendall(struct.pack("I", result))

@@ -378,6 +378,8 @@ plan_query(
     ParamListInfo boundParams)
 {
 
+  elog(LOG, "Bao plan_query");
+
   BaoPlan* plan;
   PlannedStmt* plan_for_arm[BAO_MAX_ARMS];
   char* json_for_arm[BAO_MAX_ARMS];

@@ -248,9 +248,12 @@ static void bao_ExecutorStart(QueryDesc *queryDesc, int eflags) {
   else
     standard_ExecutorStart(queryDesc, eflags);
 
-  if (enable_bao_rewards
-      && queryDesc->plannedstmt->queryId != 0) {
-    if (queryDesc->totaltime == NULL) {
+  if (enable_bao_rewards 
+      && queryDesc->plannedstmt->queryId != 0) 
+  {
+    
+    if (queryDesc->totaltime == NULL) 
+    {
       MemoryContext oldcxt;
       
       oldcxt = MemoryContextSwitchTo(queryDesc->estate->es_query_cxt);
@@ -345,6 +348,7 @@ static void bao_ExplainOneQuery(
   //       figure out how to add to the end of it. 
   
   if (prev_ExplainOneQuery) {
+    elog(LOG, "Bao call prev_ExplainOneQuery");
     prev_ExplainOneQuery(
         query,
         cursorOptions,
@@ -360,13 +364,15 @@ static void bao_ExplainOneQuery(
   // here as a consequence.
   
   INSTR_TIME_SET_CURRENT(plan_start);
-  plan = (planner_hook ? planner_hook(query, query_string, cursorOptions, params)
+
+  plan = (planner_hook 
+          ? planner_hook(query, query_string, cursorOptions, params)
           : standard_planner(query, query_string, cursorOptions, params));
+
   INSTR_TIME_SET_CURRENT(plan_duration);
   INSTR_TIME_SUBTRACT(plan_duration, plan_start);
     
   if (!enable_bao) {
-    // Bao is disabled, do the deault explain thing.
     ExplainOnePlan(
         plan,
         into,
