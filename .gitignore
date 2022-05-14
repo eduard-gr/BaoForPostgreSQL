@@ -6,4 +6,5 @@
 .clangd
 .ipynb*
 
+.idea
 bao_server/.idea
