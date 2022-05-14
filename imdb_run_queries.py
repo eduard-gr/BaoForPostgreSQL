@@ -1,11 +1,17 @@
 import psycopg2
+import json
 import os
 import sys
 import random
 from time import time, sleep
 
+
 USE_BAO = True
-PG_CONNECTION_STR = "dbname=imdb user=imdb host=localhost"
+DB_NAME = "imdb"
+PASSWORD = ""
+PG_CONNECTION_STR = "dbname={} user=postgres password={} host=localhost".format(
+    DB_NAME,
+    PASSWORD)
 
 # https://stackoverflow.com/questions/312443/
 def chunks(lst, n):
@@ -14,7 +20,7 @@ def chunks(lst, n):
         yield lst[i:i + n]
 
 
-def run_query(sql, bao_select=False, bao_reward=False):
+def run_query(sql, file_name, bao_select=False, bao_reward=False):
     start = time()
     while True:
         try:
@@ -25,7 +31,20 @@ def run_query(sql, bao_select=False, bao_reward=False):
             cur.execute(f"SET enable_bao_rewards TO {bao_reward}")
             cur.execute("SET bao_num_arms TO 5")
             cur.execute("SET statement_timeout TO 300000")
-            cur.execute(q)
+
+            metadata = {
+                "dbname": DB_NAME,
+                "query_name": file_name,
+                "bao_enabled": {bao_select or bao_reward},
+                "bao_select": bao_select,
+                "bao_reward": bao_reward,
+            }
+
+            cur.execute("/**{}**/{}".format(
+                json.dumps(metadata),
+                sql
+            ))
+
             cur.fetchall()
             conn.close()
             break
@@ -52,7 +71,7 @@ pg_chunks, *bao_chunks = list(chunks(query_sequence, 25))
 print("Executing queries using PG optimizer for initial training")
 
 for fp, q in pg_chunks:
-    pg_time = run_query(q, bao_reward=True)
+    pg_time = run_query(q, fp, bao_reward=True)
     print("x", "x", time(), fp, pg_time, "PG", flush=True)
 
 for c_idx, chunk in enumerate(bao_chunks):
@@ -60,5 +79,5 @@ for c_idx, chunk in enumerate(bao_chunks):
         os.system("cd bao_server && python3 baoctl.py --retrain")
         os.system("sync")
     for q_idx, (fp, q) in enumerate(chunk):
-        q_time = run_query(q, bao_reward=USE_BAO, bao_select=USE_BAO)
+        q_time = run_query(q, fp, bao_reward=USE_BAO, bao_select=USE_BAO)
         print(c_idx, q_idx, time(), fp, q_time, flush=True)
