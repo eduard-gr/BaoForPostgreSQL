@@ -63,7 +63,7 @@ static bool should_report_reward(QueryDesc* queryDesc) {
   // (2) that the query actually executed (e.g., was not an EXPLAIN).
   // (3) the the instrument_options is zero (e.g., was not an EXPLAIN ANALYZE)
   if(queryDesc->plannedstmt->queryId != 0){
-    return false
+    return false;
   }
 
   if(!queryDesc->already_executed){
