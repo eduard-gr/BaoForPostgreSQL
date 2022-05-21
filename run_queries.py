@@ -38,36 +38,36 @@ def chunks(lst, n):
 
 def run_query(sql, file_name, bao_select=False, bao_reward=False):
     start = time()
-    while True:
-        try:
-            conn = psycopg2.connect(PG_CONNECTION_STR)
-            cur = conn.cursor()
-            cur.execute(f"SET bao_port TO {bao_port}")
-            cur.execute(f"SET enable_bao TO {bao_select or bao_reward}")
-            cur.execute(f"SET enable_bao_selection TO {bao_select}")
-            cur.execute(f"SET enable_bao_rewards TO {bao_reward}")
-            cur.execute("SET bao_num_arms TO 5")
-            cur.execute("SET statement_timeout TO 300000")
 
-            metadata = {
-                "dbname": db_name,
-                "query_name": file_name,
-                "bao_enabled": (bao_select or bao_reward),
-                "bao_select": bao_select,
-                "bao_reward": bao_reward,
-            }
+    try:
+        conn = psycopg2.connect(PG_CONNECTION_STR)
+        cur = conn.cursor()
+        cur.execute(f"SET bao_port TO {bao_port}")
+        cur.execute(f"SET enable_bao TO {bao_select or bao_reward}")
+        cur.execute(f"SET enable_bao_selection TO {bao_select}")
+        cur.execute(f"SET enable_bao_rewards TO {bao_reward}")
+        cur.execute("SET bao_num_arms TO 5")
+        cur.execute("SET statement_timeout TO 500000")
 
-            cur.execute("/**{}**/{}".format(
-                metadata,
-                sql
-            ))
+        metadata = {
+            "dbname": db_name,
+            "query_name": file_name,
+            "bao_enabled": (bao_select or bao_reward),
+            "bao_select": bao_select,
+            "bao_reward": bao_reward,
+        }
 
-            cur.fetchall()
-            conn.close()
-            break
-        except:
-            sleep(1)
-            continue
+        cur.execute("/**{}**/{}".format(
+            metadata,
+            sql
+        ))
+
+        cur.fetchall()
+        conn.close()
+        #break
+    except:
+        return -1
+
     stop = time()
     return stop - start
 
